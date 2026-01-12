@@ -35,12 +35,28 @@
 
 The system automatically extracts and processes:
 
-- **Monday.com Items**: 10-digit IDs (e.g., `1234567890`)
+- **Monday.com Items**: 
+  - 10-digit numeric IDs (e.g., `2542511835`)
+  - TBUS format IDs (e.g., `TBUS-144`, `TBUS-1000`)
 - **Atlassian Tickets**: OPS format (e.g., `OPS-123`, `OPS 456`)
 
 Extracted tickets are enriched with:
-- **Monday.com**: Item names and story points
+- **Monday.com**: 
+  - Numeric IDs: Item names and story points from main board
+  - TBUS IDs: Item names and story points from board 5088989923
 - **Atlassian**: Ticket summaries and status
+
+### Ticket ID Detection Logic
+
+The application uses regex patterns to identify tickets:
+
+- **Numeric Monday.com IDs**: `/\b\d{10}\b/g` - Matches exactly 10 consecutive digits
+- **TBUS Tickets**: `/TBUS-\d+/gi` - Matches TBUS followed by hyphen and any number of digits
+- **OPS Tickets**: `/OPS\D*(\d+)/gi` - Matches OPS followed by optional non-digits and numbers
+
+**Dual Board Support**: 
+- Numeric IDs query the default Monday.com board using direct item lookup
+- TBUS IDs query board 5088989923 using column value search on the `item_id` column
 
 ## 📊 Generated Outputs
 
@@ -130,7 +146,7 @@ TimeSheetWizard/
 1. **File Upload**: User selects Excel or CSV file
 2. **Column Normalization**: Maps various column names to standard format
 3. **Data Filtering**: Removes non-billable entries
-4. **Ticket Extraction**: Regex parsing for Monday.com IDs and OPS tickets
+4. **Ticket Extraction**: Regex parsing for Monday.com IDs (numeric and TBUS format) and OPS tickets
 5. **API Enrichment**: Fetches ticket details from respective APIs
 6. **Consolidation**: Groups entries by ticket and calculates totals
 7. **Visualization**: Generates charts and statistics
