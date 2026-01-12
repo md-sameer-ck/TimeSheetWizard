@@ -846,6 +846,12 @@
                     if (mondayMatches) {
                         mondayMatches.forEach(id => mondayIds.add(id));
                     }
+                    
+                    // Extract TBUS-XXX format tickets
+                    const tbusMatches = comments.match(/TBUS-\d+/gi);
+                    if (tbusMatches) {
+                        tbusMatches.forEach(id => mondayIds.add(id.toUpperCase()));
+                    }
 
                     // Extract OPS tickets
                     const opsMatches = comments.match(/OPS\D*(\d+)/gi);
@@ -1112,8 +1118,10 @@
                 const hours = parseFloat(row['Total Hours']) || 0;
                 const comments = String(row['Comments'] || '');
 
-                // Extract ticket IDs
-                const mondayIds = noApiTasks.has(task) ? [] : (comments.match(/\b\d{10}\b/g) || []);
+                // Extract ticket IDs (both 10-digit numbers and TBUS-XXX format)
+                const numericIds = noApiTasks.has(task) ? [] : (comments.match(/\b\d{10}\b/g) || []);
+                const tbusIds = noApiTasks.has(task) ? [] : (comments.match(/TBUS-\d+/gi) || []).map(id => id.toUpperCase());
+                const mondayIds = [...numericIds, ...tbusIds];
                 const opsTickets = noApiTasks.has(task) ? [] :
                     (comments.match(/OPS\s*-\s*\d+/gi) || []).map(ticket =>
                         ticket.replace(/\s*-\s*/, '-').toUpperCase()
